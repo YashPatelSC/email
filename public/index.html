@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Feedback Mailer</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card">
+      <p class="eyebrow">Hotel Guest Follow-up</p>
+      <h1>Guest Feedback Mailer</h1>
+      <p class="muted">Simple internal page to personalize and send a thank-you / feedback email after a guest stays.</p>
+
+      <div class="status-stack">
+        <div>
+          <span class="label">App</span>
+          <div class="value" id="appName">--</div>
+        </div>
+        <div>
+          <span class="label">Send-from</span>
+          <div class="value" id="fromEmailPreview">--</div>
+        </div>
+        <div>
+          <span class="label">Log folder</span>
+          <div class="path" id="dataDir">--</div>
+        </div>
+      </div>
+
+      <div class="helper-note">
+        <strong>Template variables</strong>
+        <ul>
+          <li>{{firstName}}</li>
+          <li>{{lastName}}</li>
+          <li>{{fullName}}</li>
+          <li>{{email}}</li>
+          <li>{{hotelName}}</li>
+          <li>{{feedbackUrl}}</li>
+          <li>{{bookingUrl}}</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main-column">
+      <section class="card hero-card">
+        <div>
+          <p class="eyebrow">One guest at a time</p>
+          <h2>Send a thank-you email</h2>
+          <p class="muted">Fill in the guest info, adjust the template if needed, preview it, then send.</p>
+        </div>
+        <div class="actions-inline">
+          <button class="ghost" type="button" id="previewButton">Preview</button>
+          <button type="button" id="sendButton">Send email</button>
+        </div>
+      </section>
+
+      <section class="card form-card">
+        <form id="mailerForm">
+          <div class="grid two-up">
+            <label>
+              Guest first name
+              <input type="text" name="firstName" placeholder="John" required />
+            </label>
+            <label>
+              Guest last name
+              <input type="text" name="lastName" placeholder="Smith" />
+            </label>
+            <label>
+              Guest email
+              <input type="email" name="email" placeholder="john@example.com" required />
+            </label>
+            <label>
+              From name
+              <input type="text" name="fromName" placeholder="Hotel Team" />
+            </label>
+            <label>
+              Hotel name
+              <input type="text" name="hotelName" placeholder="Quality Inn West Columbia - Cayce" />
+            </label>
+            <label class="full-width">
+              From email
+              <input type="email" name="fromEmail" placeholder="hotel@example.com" />
+            </label>
+            <label class="full-width">
+              Feedback URL
+              <input type="url" name="feedbackUrl" placeholder="https://example.com/feedback" />
+            </label>
+            <label class="full-width">
+              Booking URL
+              <input type="url" name="bookingUrl" placeholder="https://example.com/book" />
+            </label>
+            <label class="full-width">
+              Logo image URL
+              <input type="url" name="logoUrl" placeholder="https://example.com/logo.png" />
+            </label>
+            <label class="full-width">
+              Subject
+              <input type="text" name="subject" placeholder="Thanks for staying with us, {{firstName}}" />
+            </label>
+          </div>
+
+          <label>
+            Message body
+            <textarea name="body" rows="10" placeholder="Hi {{firstName}}, ..."></textarea>
+          </label>
+        </form>
+      </section>
+
+      <section class="card preview-card">
+        <div class="section-head">
+          <h3>Email preview</h3>
+          <div class="save-status" id="statusText">Not sent yet.</div>
+        </div>
+        <div class="preview-box">
+          <div><span class="label">To</span><div id="previewTo">--</div></div>
+          <div><span class="label">Subject</span><div id="previewSubject">--</div></div>
+          <div><span class="label">Text body</span><pre id="previewBody">--</pre></div>
+          <div><span class="label">HTML preview</span><div id="previewHtml" class="html-preview">--</div></div>
+        </div>
+      </section>
+
+      <section class="card reports-card">
+        <div class="section-head">
+          <h3>Recent send attempts</h3>
+          <button class="ghost" id="refreshSends" type="button">Refresh</button>
+        </div>
+        <div id="recentSends" class="reports-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

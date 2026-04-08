@@ -1,0 +1,12 @@
+{
+  "name": "guest-feedback-webapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local guest thank-you and feedback email web app prototype",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}
