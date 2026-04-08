@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
@@ -42,28 +42,12 @@ function sanitizeSegment(value) {
     .toLowerCase() || 'unknown';
 }
 
-function smtpEnabled() {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS);
+function resendEnabled() {
+  return Boolean(process.env.RESEND_API_KEY);
 }
 
-function createTransport() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true',
-    requireTLS: String(process.env.SMTP_REQUIRE_TLS || 'false').toLowerCase() === 'true',
-    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
-    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
-    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 15000),
-    tls: {
-      minVersion: 'TLSv1.2',
-      rejectUnauthorized: true
-    },
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  });
+function getResendClient() {
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 function ensureJsonBody(req) {
@@ -234,27 +218,31 @@ function logSendAttempt(entry) {
   return filePath;
 }
 
-async function sendMailWithSmtp({ fromName, fromEmail, to, subject, text, html }) {
-  if (!smtpEnabled()) {
-    throw new Error('SMTP is not configured.');
+async function sendMailWithResend({ fromName, fromEmail, to, subject, text, html }) {
+  if (!resendEnabled()) {
+    throw new Error('Resend is not configured.');
   }
 
-  const transport = createTransport();
-  const info = await transport.sendMail({
-    from: `${fromName} <${fromEmail || process.env.DEFAULT_FROM_EMAIL || process.env.SMTP_USER}>`,
+  const resend = getResendClient();
+  const fromAddress = fromEmail || process.env.DEFAULT_FROM_EMAIL || 'onboarding@resend.dev';
+  const from = `${fromName} <${fromAddress}>`;
+  const result = await resend.emails.send({
+    from,
     to,
     subject,
     text,
     html
   });
 
+  if (result.error) {
+    throw new Error(result.error.message || 'Resend send failed');
+  }
+
   return {
     ok: true,
-    transport: 'Gmail SMTP via nodemailer',
-    messageId: info.messageId,
-    accepted: info.accepted,
-    rejected: info.rejected,
-    response: info.response
+    transport: 'Resend API',
+    emailId: result.data?.id || '',
+    response: result.data || null
   };
 }
 
@@ -288,7 +276,7 @@ async function handleSend(req, res) {
     };
 
     try {
-      const delivery = await sendMailWithSmtp({
+      const delivery = await sendMailWithResend({
         fromName: preview.template.fromName,
         fromEmail: preview.template.fromEmail,
         to: preview.guest.email,
@@ -303,7 +291,7 @@ async function handleSend(req, res) {
       record.error = error.message;
       record.errorCode = error.code || '';
       record.errorCommand = error.command || '';
-      console.error('SMTP send failed', {
+      console.error('Email send failed', {
         message: error.message,
         code: error.code,
         command: error.command,
@@ -333,7 +321,7 @@ const server = http.createServer(async (req, res) => {
       host: `${HOST}:${PORT}`,
       dataDir: DATA_DIR,
       defaults: DEFAULT_TEMPLATE,
-      smtpReady: smtpEnabled(),
+      resendReady: resendEnabled(),
       recentSends: listLogs(10)
     });
     return;

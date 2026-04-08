@@ -7,6 +7,6 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "nodemailer": "^6.9.14"
+    "resend": "^4.0.0"
   }
 }
