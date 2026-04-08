@@ -51,6 +51,14 @@ function createTransport() {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
     secure: String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true',
+    requireTLS: String(process.env.SMTP_REQUIRE_TLS || 'false').toLowerCase() === 'true',
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
+    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 15000),
+    tls: {
+      minVersion: 'TLSv1.2',
+      rejectUnauthorized: true
+    },
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
@@ -293,6 +301,16 @@ async function handleSend(req, res) {
     } catch (error) {
       record.status = 'failed';
       record.error = error.message;
+      record.errorCode = error.code || '';
+      record.errorCommand = error.command || '';
+      console.error('SMTP send failed', {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+        stack: error.stack
+      });
     }
 
     const filePath = logSendAttempt(record);

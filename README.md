@@ -9,7 +9,7 @@ Simple internal web app for sending personalized post-stay thank-you / feedback 
 - Personalize the subject and body with guest data
 - Preview the outgoing email before sending
 - Save a send log locally
-- Attempt real email delivery through Gmail SMTP using app credentials stored in `.env`
+- Attempt real email delivery through Gmail SMTP using app credentials stored in `.env` or host environment variables
 
 ## Template variables
 
